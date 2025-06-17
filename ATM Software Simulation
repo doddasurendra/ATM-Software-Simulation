@@ -1,0 +1,107 @@
+import os
+import json
+
+DATA_FILE = "accounts.json"
+
+# Sample data to create file if it doesn't exist
+sample_data = {
+    "1234567890": {"pin": "1234", "balance": 5000}
+}
+
+def load_accounts():
+    if not os.path.exists(DATA_FILE):
+        with open(DATA_FILE, 'w') as f:
+            json.dump(sample_data, f)
+    with open(DATA_FILE, 'r') as f:
+        return json.load(f)
+
+def save_accounts(accounts):
+    with open(DATA_FILE, 'w') as f:
+        json.dump(accounts, f, indent=4)
+
+def login(accounts):
+    card = input("Enter your card number: ")
+    pin = input("Enter your PIN: ")
+    if card in accounts and accounts[card]['pin'] == pin:
+        print("\nLogin successful!\n")
+        return card
+    else:
+        print("Invalid card number or PIN.\n")
+        return None
+
+def balance_enquiry(accounts, card):
+    print(f"Your current balance is ₹{accounts[card]['balance']}")
+
+def deposit(accounts, card):
+    try:
+        amount = float(input("Enter amount to deposit: "))
+        if amount <= 0:
+            print("Amount must be positive.")
+            return
+        accounts[card]['balance'] += amount
+        print(f"₹{amount} deposited successfully.")
+    except ValueError:
+        print("Invalid amount.")
+
+def withdraw(accounts, card):
+    try:
+        amount = float(input("Enter amount to withdraw: "))
+        if amount <= 0:
+            print("Amount must be positive.")
+            return
+        if amount > accounts[card]['balance']:
+            print("Insufficient balance.")
+            return
+        accounts[card]['balance'] -= amount
+        print(f"₹{amount} withdrawn successfully.")
+    except ValueError:
+        print("Invalid amount.")
+
+def change_pin(accounts, card):
+    current_pin = input("Enter current PIN: ")
+    if current_pin != accounts[card]['pin']:
+        print("Incorrect current PIN.")
+        return
+    new_pin = input("Enter new PIN: ")
+    confirm_pin = input("Confirm new PIN: ")
+    if new_pin != confirm_pin:
+        print("PIN mismatch.")
+        return
+    accounts[card]['pin'] = new_pin
+    print("PIN changed successfully.")
+
+def atm_menu(accounts, card):
+    while True:
+        print("\n--- ATM MENU ---")
+        print("1. Balance Enquiry")
+        print("2. Deposit")
+        print("3. Withdraw")
+        print("4. Change PIN")
+        print("5. Exit")
+        choice = input("Enter your choice: ")
+        if choice == "1":
+            balance_enquiry(accounts, card)
+        elif choice == "2":
+            deposit(accounts, card)
+        elif choice == "3":
+            withdraw(accounts, card)
+        elif choice == "4":
+            change_pin(accounts, card)
+        elif choice == "5":
+            print("Thank you for using our ATM. Goodbye!\n")
+            break
+        else:
+            print("Invalid choice. Try again.")
+        save_accounts(accounts)
+
+def main():
+    print("=== Welcome to Python ATM ===")
+    accounts = load_accounts()
+    card = login(accounts)
+    if card:
+        atm_menu(accounts, card)
+    else:
+        print("Login failed. Try again later.")
+
+if __name__ == "__main__":
+    main()
